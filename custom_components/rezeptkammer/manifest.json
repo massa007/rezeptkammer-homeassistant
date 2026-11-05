@@ -1,6 +1,10 @@
 {
   "domain": "rezeptkammer",
   "name": "RezeptKammer",
+  "categories": [
+    "productivity_information.shopping_groceries",
+    "appliances_cleaning.cooking"
+  ],
   "codeowners": [
     "@massa007"
   ],
