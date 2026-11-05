@@ -1,0 +1,63 @@
+blueprint:
+  name: RezeptKammer – Ofen vorheizen (Home Connect)
+  description: >-
+    Tippst du im Kochmodus der RezeptKammer auf „Ofen vorheizen“, startet dein
+    Home-Connect-Ofen (Bosch, Siemens, Neff, Gaggenau) mit der Temperatur aus dem
+    Rezept. Umluft bzw. Ober-/Unterhitze wird aus dem Rezepttext übernommen.
+    Voraussetzung: Home-Connect-Integration eingerichtet und Fernstart am Ofen erlaubt.
+  domain: automation
+  source_url: https://rezeptkammer.de/ha/blueprints/ofen_vorheizen.yaml
+  input:
+    oven:
+      name: Backofen
+      selector:
+        device:
+          integration: home_connect
+    default_program:
+      name: Programm, wenn das Rezept keine Heizart nennt
+      default: cooking_oven_program_heating_mode_hot_air
+      selector:
+        select:
+          options:
+            - label: Umluft / Heißluft
+              value: cooking_oven_program_heating_mode_hot_air
+            - label: Ober-/Unterhitze
+              value: cooking_oven_program_heating_mode_top_bottom_heating
+            - label: Schnellaufheizen
+              value: cooking_oven_program_heating_mode_pre_heating
+    notify_action:
+      name: Bestätigung aufs Handy
+      description: "Optional, z. B. notify.mobile_app_mein_handy"
+      default: ""
+      selector:
+        text:
+mode: restart
+triggers:
+  - trigger: event
+    event_type: rezeptkammer_event
+    event_data:
+      type: oven_preheat
+variables:
+  default_program: !input default_program
+  notify_action: !input notify_action
+  programs:
+    hot_air: cooking_oven_program_heating_mode_hot_air
+    top_bottom: cooking_oven_program_heating_mode_top_bottom_heating
+    grill: cooking_oven_program_heating_mode_hot_air_grilling
+  program: "{{ programs.get(trigger.event.data.mode, default_program) }}"
+  temperature: "{{ trigger.event.data.temperature | int }}"
+actions:
+  - action: home_connect.set_program_and_options
+    data:
+      device_id: !input oven
+      affects_to: active_program
+      program: "{{ program }}"
+      cooking_oven_option_setpoint_temperature: "{{ temperature }}"
+  - if:
+      - condition: template
+        value_template: "{{ notify_action != '' }}"
+    then:
+      - action: "{{ notify_action }}"
+        data:
+          title: RezeptKammer
+          message: "Ofen heizt auf {{ temperature }} °C vor{% if trigger.event.data.recipe %} – {{ trigger.event.data.recipe }}{% endif %}"

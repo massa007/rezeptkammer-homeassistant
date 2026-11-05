@@ -1,0 +1,15 @@
+{
+  "domain": "rezeptkammer",
+  "name": "RezeptKammer",
+  "codeowners": [
+    "@massa007"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/massa007/rezeptkammer-homeassistant",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/massa007/rezeptkammer-homeassistant/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

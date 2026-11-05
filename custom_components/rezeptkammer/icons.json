@@ -1,0 +1,17 @@
+{
+  "entity": {
+    "sensor": {
+      "timer_end": {
+        "default": "mdi:timer-outline"
+      },
+      "suggestion": {
+        "default": "mdi:chef-hat"
+      }
+    },
+    "event": {
+      "cooking": {
+        "default": "mdi:pot-steam"
+      }
+    }
+  }
+}

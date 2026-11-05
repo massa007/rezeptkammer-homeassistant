@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "RezeptKammer",
+        "description": "Connect your RecipeChamber shopping lists and cooking mode to Home Assistant. The easiest way is to confirm the connection with your account in the browser.",
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "url": "Server address"
+            },
+            "data_description": {
+              "url": "Only change this if you use your own RecipeChamber instance."
+            }
+          }
+        }
+      },
+      "method": {
+        "title": "RezeptKammer",
+        "description": "How would you like to connect?",
+        "menu_options": {
+          "pair": "Connect with my account (recommended)",
+          "token": "Enter access key"
+        }
+      },
+      "token": {
+        "title": "Access key",
+        "description": "Create the key at rezeptkammer.de → Account → Home Assistant.",
+        "data": {
+          "token": "Access key"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reconnect",
+        "description": "The connection to RecipeChamber was removed or the key revoked. Please connect your account again."
+      }
+    },
+    "progress": {
+      "wait_for_approval": "1. Open this link: [{url}]({url})\n2. Log in if needed and confirm the code **{code}**.\n\nSetup continues here automatically. On another device you can also open {base_url} and enter the code."
+    },
+    "error": {
+      "invalid_auth": "The access key is invalid.",
+      "cannot_connect": "RecipeChamber cannot be reached."
+    },
+    "abort": {
+      "cannot_connect": "RecipeChamber cannot be reached.",
+      "invalid_auth": "The access key is invalid.",
+      "pairing_expired": "The code has expired. Please start the setup again.",
+      "already_configured": "This account is already connected.",
+      "reauth_successful": "Reconnected."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "timer_end": {
+        "name": "Timer end"
+      },
+      "suggestion": {
+        "name": "Recipe suggestion"
+      }
+    },
+    "image": {
+      "suggestion_image": {
+        "name": "Recipe suggestion"
+      }
+    },
+    "event": {
+      "cooking": {
+        "name": "Cooking",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "timer_started": "Timer started",
+              "timer_finished": "Timer finished",
+              "timer_cancelled": "Timer stopped",
+              "oven_preheat": "Preheat oven",
+              "cooking_started": "Cooking mode started",
+              "cooking_step": "Cooking step",
+              "cooking_finished": "Cooking finished"
+            }
+          }
+        }
+      }
+    }
+  }
+}

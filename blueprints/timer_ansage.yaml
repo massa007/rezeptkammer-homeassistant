@@ -1,0 +1,85 @@
+blueprint:
+  name: RezeptKammer – Timer-Ansage
+  description: >-
+    Läuft im Kochmodus der RezeptKammer ein Timer ab, sagt Home Assistant das auf
+    einem Lautsprecher an, schickt eine Benachrichtigung und/oder lässt ein Licht
+    blinken. Alles optional – wähle nur aus, was du möchtest.
+  domain: automation
+  source_url: https://rezeptkammer.de/ha/blueprints/timer_ansage.yaml
+  input:
+    speakers:
+      name: Lautsprecher
+      description: Lautsprecher für die Ansage (leer lassen = keine Ansage)
+      default: []
+      selector:
+        entity:
+          domain: media_player
+          multiple: true
+    tts_engine:
+      name: Sprachausgabe
+      description: Text-to-Speech-Dienst, z. B. tts.google_translate_de_de oder tts.home_assistant_cloud
+      default: ""
+      selector:
+        entity:
+          domain: tts
+    message:
+      name: Ansage
+      description: Danach folgt die Zeitangabe aus dem Rezept (z. B. „10 Minuten“).
+      default: Der Timer ist abgelaufen
+      selector:
+        text:
+    notify_action:
+      name: Benachrichtigung
+      description: "Benachrichtigungs-Aktion, z. B. notify.mobile_app_mein_handy (leer = keine)"
+      default: ""
+      selector:
+        text:
+    lights:
+      name: Licht blinken lassen
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+mode: queued
+triggers:
+  - trigger: event
+    event_type: rezeptkammer_event
+    event_data:
+      type: timer_finished
+variables:
+  speakers: !input speakers
+  tts_engine: !input tts_engine
+  notify_action: !input notify_action
+  lights: !input lights
+  base_message: !input message
+  full_message: >-
+    {{ base_message }}{% if trigger.event.data.label %}: {{ trigger.event.data.label }}{% endif %}{% if trigger.event.data.recipe %} – {{ trigger.event.data.recipe }}{% endif %}
+actions:
+  - if:
+      - condition: template
+        value_template: "{{ speakers | count > 0 and tts_engine != '' }}"
+    then:
+      - action: tts.speak
+        target:
+          entity_id: "{{ tts_engine }}"
+        data:
+          media_player_entity_id: "{{ speakers }}"
+          message: "{{ full_message }}"
+  - if:
+      - condition: template
+        value_template: "{{ notify_action != '' }}"
+    then:
+      - action: "{{ notify_action }}"
+        data:
+          title: RezeptKammer
+          message: "{{ full_message }}"
+  - if:
+      - condition: template
+        value_template: "{{ lights | count > 0 }}"
+    then:
+      - action: light.turn_on
+        target:
+          entity_id: "{{ lights }}"
+        data:
+          flash: long

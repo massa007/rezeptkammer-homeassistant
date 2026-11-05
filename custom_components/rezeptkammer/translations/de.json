@@ -1,0 +1,87 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "RezeptKammer",
+        "description": "Verbinde deine Einkaufslisten und den Kochmodus der RezeptKammer mit Home Assistant. Am einfachsten bestätigst du die Verbindung mit deinem Konto im Browser.",
+        "sections": {
+          "advanced": {
+            "name": "Erweitert",
+            "data": {
+              "url": "Server-Adresse"
+            },
+            "data_description": {
+              "url": "Nur ändern, wenn du eine eigene RezeptKammer-Instanz nutzt."
+            }
+          }
+        }
+      },
+      "method": {
+        "title": "RezeptKammer",
+        "description": "Wie möchtest du dich verbinden?",
+        "menu_options": {
+          "pair": "Mit meinem Konto verbinden (empfohlen)",
+          "token": "Zugangsschlüssel eingeben"
+        }
+      },
+      "token": {
+        "title": "Zugangsschlüssel",
+        "description": "Erzeuge den Schlüssel unter rezeptkammer.de → Konto → Home Assistant.",
+        "data": {
+          "token": "Zugangsschlüssel"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Erneut verbinden",
+        "description": "Die Verbindung zur RezeptKammer wurde getrennt oder der Schlüssel widerrufen. Verbinde dein Konto erneut."
+      }
+    },
+    "progress": {
+      "wait_for_approval": "1. Öffne diesen Link: [{url}]({url})\n2. Melde dich an, falls nötig, und bestätige den Code **{code}**.\n\nDanach geht es hier automatisch weiter. Auf einem anderen Gerät kannst du auch {base_url} aufrufen und den Code eingeben."
+    },
+    "error": {
+      "invalid_auth": "Der Zugangsschlüssel ist ungültig.",
+      "cannot_connect": "Die RezeptKammer ist nicht erreichbar."
+    },
+    "abort": {
+      "cannot_connect": "Die RezeptKammer ist nicht erreichbar.",
+      "invalid_auth": "Der Zugangsschlüssel ist ungültig.",
+      "pairing_expired": "Der Code ist abgelaufen. Bitte starte die Einrichtung erneut.",
+      "already_configured": "Dieses Konto ist bereits verbunden.",
+      "reauth_successful": "Erneut verbunden."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "timer_end": {
+        "name": "Timer-Ende"
+      },
+      "suggestion": {
+        "name": "Rezeptvorschlag"
+      }
+    },
+    "image": {
+      "suggestion_image": {
+        "name": "Rezeptvorschlag"
+      }
+    },
+    "event": {
+      "cooking": {
+        "name": "Kochen",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "timer_started": "Timer gestartet",
+              "timer_finished": "Timer abgelaufen",
+              "timer_cancelled": "Timer gestoppt",
+              "oven_preheat": "Ofen vorheizen",
+              "cooking_started": "Kochmodus gestartet",
+              "cooking_step": "Kochschritt",
+              "cooking_finished": "Kochen beendet"
+            }
+          }
+        }
+      }
+    }
+  }
+}
