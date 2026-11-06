@@ -56,6 +56,15 @@
       "timer_end": {
         "name": "Timer end"
       },
+      "timer_duration": {
+        "name": "Timer duration"
+      },
+      "timer_recipe": {
+        "name": "Timer recipe"
+      },
+      "timer_step": {
+        "name": "Timer cooking step"
+      },
       "suggestion": {
         "name": "Recipe suggestion"
       }

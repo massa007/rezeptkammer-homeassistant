@@ -4,6 +4,15 @@
       "timer_end": {
         "default": "mdi:timer-outline"
       },
+      "timer_duration": {
+        "default": "mdi:timer-sand"
+      },
+      "timer_recipe": {
+        "default": "mdi:book-open-variant"
+      },
+      "timer_step": {
+        "default": "mdi:format-list-numbered"
+      },
       "suggestion": {
         "default": "mdi:chef-hat"
       }
