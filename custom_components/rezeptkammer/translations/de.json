@@ -37,7 +37,7 @@
       }
     },
     "progress": {
-      "wait_for_approval": "1. Öffne diesen Link: [{url}]({url})\n2. Melde dich an, falls nötig, und bestätige den Code **{code}**.\n\nDanach geht es hier automatisch weiter. Auf einem anderen Gerät kannst du auch {base_url} aufrufen und den Code eingeben."
+      "wait_for_approval": "1. Öffne diesen Link: [{url}]({url})\n2. Melde dich an, falls nötig, und bestätige den Code **{code}**.\n\nDanach geht es hier automatisch weiter. Auf einem anderen Gerät kannst du auch {base_url} aufrufen und den Code eingeben.\n\nWeitere Person aus deinem Haushalt? Öffne den Link auf ihrem Gerät oder melde dich mit ihrem Konto an – jede Person verbindet ihr eigenes Konto."
     },
     "error": {
       "invalid_auth": "Der Zugangsschlüssel ist ungültig.",
@@ -47,7 +47,7 @@
       "cannot_connect": "Die RezeptKammer ist nicht erreichbar.",
       "invalid_auth": "Der Zugangsschlüssel ist ungültig.",
       "pairing_expired": "Der Code ist abgelaufen. Bitte starte die Einrichtung erneut.",
-      "already_configured": "Dieses Konto ist bereits verbunden.",
+      "already_configured": "Dieses Konto ist bereits verbunden. Für eine weitere Person aus deinem Haushalt bestätige den Code mit deren Konto.",
       "reauth_successful": "Erneut verbunden."
     }
   },

@@ -28,6 +28,9 @@ class RezeptKammerData:
     lists: dict[str, dict[str, Any]] = field(default_factory=dict)  # id -> {name, items}
     active_timer: dict[str, Any] | None = None
     suggestion: dict[str, Any] | None = None
+    account: str | None = None
+    # Kammer-Listen, die in diesem Home Assistant schon ein anderes Konto zeigt (Haushalt mit mehreren Konten)
+    lists_elsewhere: set[str] = field(default_factory=set)
 
 
 def signal_event(entry_id: str) -> str:
@@ -54,24 +57,32 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
             update_interval=timedelta(minutes=FULL_REFRESH_MINUTES),
         )
         self.api = api
+        self.instance_id: str | None = None
         self._timer_unsub: CALLBACK_TYPE | None = None
 
     async def _async_update_data(self) -> RezeptKammerData:
         try:
-            state = await self.api.state()
+            state = await self.api.state(self.instance_id)
             lists: dict[str, dict[str, Any]] = {}
+            elsewhere: set[str] = set()
             for lst in state.get("lists", []):
+                if lst.get("elsewhere"):
+                    elsewhere.add(lst["id"])
+                    continue
                 lists[lst["id"]] = {"name": lst["name"], "items": await self.api.list_items(lst["id"])}
         except RezeptKammerAuthError as err:
             raise ConfigEntryAuthFailed("Zugangsschluessel ungueltig") from err
         except RezeptKammerError as err:
             raise UpdateFailed(str(err)) from err
         data = RezeptKammerData(lists=lists, active_timer=state.get("active_timer"),
-                                suggestion=state.get("suggestion"))
+                                suggestion=state.get("suggestion"), account=state.get("user"),
+                                lists_elsewhere=elsewhere)
         self._schedule_timer(data.active_timer)
         return data
 
     async def async_refresh_list(self, list_id: str) -> None:
+        if self.data and list_id in self.data.lists_elsewhere:
+            return  # zeigt ein anderes Konto in diesem Home Assistant
         if not self.data or list_id not in self.data.lists:
             await self.async_request_refresh()  # neue Kammer -> alles neu holen
             return
@@ -112,6 +123,8 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
     @callback
     def _fire(self, event_type: str, data: dict[str, Any]) -> None:
         payload = {k: v for k, v in data.items() if k != "type"}
+        if self.data and self.data.account:
+            payload["account"] = self.data.account  # wessen Kochmodus (mehrere Konten in einem Haushalt)
         self.hass.bus.async_fire(BUS_EVENT, {"type": event_type, **payload,
                                              "config_entry_id": self.config_entry.entry_id})
         async_dispatcher_send(self.hass, signal_event(self.config_entry.entry_id), event_type, payload)

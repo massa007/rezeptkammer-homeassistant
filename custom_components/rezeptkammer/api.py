@@ -58,8 +58,9 @@ class RezeptKammerApi:
             raise RezeptKammerConnectionError(str(err)) from err
 
     # Kopplung
-    async def pair_start(self, name: str) -> dict:
-        _, data = await self._request("POST", "/pair/start", json={"name": name}, auth=False)
+    async def pair_start(self, name: str, instance_id: str | None = None) -> dict:
+        body = {"name": name, "instance_id": instance_id} if instance_id else {"name": name}
+        _, data = await self._request("POST", "/pair/start", json=body, auth=False)
         return data
 
     async def pair_poll(self, device_secret: str) -> tuple[str, dict]:
@@ -75,8 +76,9 @@ class RezeptKammerApi:
     async def me(self) -> dict:
         return (await self._request("GET", "/me"))[1]
 
-    async def state(self) -> dict:
-        return (await self._request("GET", "/state"))[1]
+    async def state(self, instance_id: str | None = None) -> dict:
+        """instance_id: Home-Assistant-Installation - gemeinsame Kammer-Listen zeigt dann nur ein Konto."""
+        return (await self._request("GET", "/state", params={"instance": instance_id} if instance_id else None))[1]
 
     async def revoke(self) -> None:
         await self._request("DELETE", "/token")

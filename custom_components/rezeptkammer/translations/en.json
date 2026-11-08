@@ -37,7 +37,7 @@
       }
     },
     "progress": {
-      "wait_for_approval": "1. Open this link: [{url}]({url})\n2. Log in if needed and confirm the code **{code}**.\n\nSetup continues here automatically. On another device you can also open {base_url} and enter the code."
+      "wait_for_approval": "1. Open this link: [{url}]({url})\n2. Log in if needed and confirm the code **{code}**.\n\nSetup continues here automatically. On another device you can also open {base_url} and enter the code.\n\nConnecting another person from your household? Open the link on their device or sign in with their account; each person connects their own account."
     },
     "error": {
       "invalid_auth": "The access key is invalid.",
@@ -47,7 +47,7 @@
       "cannot_connect": "RecipeChamber cannot be reached.",
       "invalid_auth": "The access key is invalid.",
       "pairing_expired": "The code has expired. Please start the setup again.",
-      "already_configured": "This account is already connected.",
+      "already_configured": "This account is already connected. To add another person from your household, confirm the code with their account.",
       "reauth_successful": "Reconnected."
     }
   },

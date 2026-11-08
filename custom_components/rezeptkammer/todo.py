@@ -10,10 +10,12 @@ from homeassistant.components.todo import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import RezeptKammerConfigEntry
 from .api import RezeptKammerError
+from .const import DOMAIN
 from .coordinator import RezeptKammerCoordinator
 from .entity import RezeptKammerEntity
 
@@ -30,6 +32,13 @@ async def async_setup_entry(
         known.update(new)
         if new:
             async_add_entities(RezeptKammerTodoList(coordinator, lid) for lid in new)
+        # Kammer-Liste zeigt jetzt ein anderes Konto in diesem Home Assistant -> hier entfernen
+        registry = er.async_get(hass)
+        for lid in coordinator.data.lists_elsewhere:
+            known.discard(lid)
+            entity_id = registry.async_get_entity_id("todo", DOMAIN, f"{entry.entry_id}_list_{lid}")
+            if entity_id:
+                registry.async_remove(entity_id)
 
     _add_new_lists()
     entry.async_on_unload(coordinator.async_add_listener(_add_new_lists))

@@ -10,6 +10,7 @@ import voluptuous as vol
 
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigFlow, ConfigFlowResult
 from homeassistant.data_entry_flow import section
+from homeassistant.helpers import instance_id
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import RezeptKammerApi, RezeptKammerAuthError, RezeptKammerConnectionError, RezeptKammerError
@@ -50,7 +51,8 @@ class RezeptKammerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_pair(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if self._pairing is None:
             try:
-                self._pairing = await self._api().pair_start(self.hass.config.location_name or "Home Assistant")
+                self._pairing = await self._api().pair_start(
+                    self.hass.config.location_name or "Home Assistant", await instance_id.async_get(self.hass))
             except RezeptKammerError:
                 return self.async_abort(reason="cannot_connect")
         if self._pair_task is None:
@@ -118,8 +120,26 @@ class RezeptKammerConfigFlow(ConfigFlow, domain=DOMAIN):
         if self.source == SOURCE_REAUTH:
             return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=data)
         await self.async_set_unique_id(f"{self._url}::{me['user_id']}")
-        self._abort_if_unique_id_configured(updates=data)
+        existing = self.hass.config_entries.async_entry_for_domain_unique_id(DOMAIN, self.unique_id)
+        if existing and existing.data.get(CONF_TOKEN) != token and await self._token_works(existing.data[CONF_TOKEN]):
+            # Dasselbe Konto noch einmal bestaetigt (z. B. im eigenen Browser statt mit dem Konto einer
+            # weiteren Person): den neuen Schluessel wieder widerrufen, die bestehende Verbindung bleibt
+            try:
+                await self._api(token).revoke()
+            except RezeptKammerError:
+                pass
+            return self.async_abort(reason="already_configured")
         return self.async_create_entry(title=f"RezeptKammer ({me['user']})", data=data)
+
+    async def _token_works(self, token: str) -> bool:
+        """Funktioniert der Schluessel der bestehenden Verbindung noch? Sonst ersetzt der neue ihn."""
+        try:
+            await self._api(token).me()
+        except RezeptKammerAuthError:
+            return False
+        except RezeptKammerError:
+            return True
+        return True
 
     # --- Erneut verbinden (Schluessel widerrufen) -------------------------------------
 
