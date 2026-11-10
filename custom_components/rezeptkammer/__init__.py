@@ -4,7 +4,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import instance_id
+from homeassistant.helpers import device_registry as dr, instance_id
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import RezeptKammerApi, RezeptKammerError
@@ -26,7 +26,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: RezeptKammerConfigEntry)
     entry.async_create_background_task(hass, coordinator.async_listen(), f"{DOMAIN}_events")
     entry.async_on_unload(coordinator.async_shutdown_timer)
     entry.async_on_unload(coordinator.async_shutdown_cooking)
+    _remove_stale_devices(hass, entry)
     return True
+
+
+def _remove_stale_devices(hass: HomeAssistant, entry: RezeptKammerConfigEntry) -> None:
+    """Zu einem Eintrag gehoert nur noch das Konto-Geraet - aeltere Geraete samt ihrer Entitaeten aufraeumen."""
+    registry = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
+        if (DOMAIN, entry.entry_id) not in device.identifiers:
+            registry.async_remove_device(device.id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: RezeptKammerConfigEntry, device: dr.DeviceEntry,
+) -> bool:
+    """Von Hand loeschen laesst sich jedes Geraet ausser dem Konto-Geraet."""
+    return (DOMAIN, entry.entry_id) not in device.identifiers
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: RezeptKammerConfigEntry) -> bool:
