@@ -15,11 +15,42 @@
       },
       "suggestion": {
         "default": "mdi:chef-hat"
+      },
+      "cooking_recipe": {
+        "default": "mdi:book-open-page-variant"
+      },
+      "cooking_step": {
+        "default": "mdi:format-list-numbered"
+      },
+      "cooking_progress": {
+        "default": "mdi:progress-clock"
+      },
+      "credits": {
+        "default": "mdi:shaker-outline"
       }
     },
     "event": {
       "cooking": {
         "default": "mdi:pot-steam"
+      }
+    },
+    "binary_sensor": {
+      "cooking_active": {
+        "default": "mdi:pot-steam-outline",
+        "state": {
+          "on": "mdi:pot-steam"
+        }
+      },
+      "credits_low": {
+        "default": "mdi:shaker-outline",
+        "state": {
+          "on": "mdi:shaker"
+        }
+      }
+    },
+    "button": {
+      "suggestion_to_list": {
+        "default": "mdi:cart-plus"
       }
     }
   }

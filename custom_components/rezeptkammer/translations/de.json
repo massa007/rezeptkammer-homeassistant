@@ -67,6 +67,18 @@
       },
       "suggestion": {
         "name": "Rezeptvorschlag"
+      },
+      "cooking_recipe": {
+        "name": "Kochrezept"
+      },
+      "cooking_step": {
+        "name": "Kochschritt"
+      },
+      "cooking_progress": {
+        "name": "Kochfortschritt"
+      },
+      "credits": {
+        "name": "Prisen"
       }
     },
     "image": {
@@ -91,6 +103,24 @@
           }
         }
       }
+    },
+    "binary_sensor": {
+      "cooking_active": {
+        "name": "Kocht gerade"
+      },
+      "credits_low": {
+        "name": "Prisen knapp"
+      }
+    },
+    "button": {
+      "suggestion_to_list": {
+        "name": "Vorschlag auf die Einkaufsliste"
+      }
+    }
+  },
+  "exceptions": {
+    "suggestion_to_list_failed": {
+      "message": "Der Rezeptvorschlag konnte nicht auf die Einkaufsliste gelegt werden."
     }
   }
 }

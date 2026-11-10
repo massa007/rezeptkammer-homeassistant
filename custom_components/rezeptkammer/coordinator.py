@@ -16,7 +16,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import RezeptKammerApi, RezeptKammerAuthError, RezeptKammerConnectionError, RezeptKammerError
-from .const import BUS_EVENT, DOMAIN, EVENT_WAIT_SECONDS, FULL_REFRESH_MINUTES
+from .const import BUS_EVENT, COOKING_IDLE_MINUTES, DOMAIN, EVENT_WAIT_SECONDS, FULL_REFRESH_MINUTES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +29,9 @@ class RezeptKammerData:
     active_timer: dict[str, Any] | None = None
     suggestion: dict[str, Any] | None = None
     account: str | None = None
+    # laufender Kochmodus: recipe, recipe_url, started_at, step, total, step_text, expires_at
+    cooking: dict[str, Any] | None = None
+    credits: float | None = None  # None = unbegrenztes Guthaben (dann keine Prisen-Entitaeten)
     # Kammer-Listen, die in diesem Home Assistant schon ein anderes Konto zeigt (Haushalt mit mehreren Konten)
     lists_elsewhere: set[str] = field(default_factory=set)
 
@@ -59,6 +62,7 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
         self.api = api
         self.instance_id: str | None = None
         self._timer_unsub: CALLBACK_TYPE | None = None
+        self._cooking_unsub: CALLBACK_TYPE | None = None
 
     async def _async_update_data(self) -> RezeptKammerData:
         try:
@@ -76,8 +80,10 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
             raise UpdateFailed(str(err)) from err
         data = RezeptKammerData(lists=lists, active_timer=state.get("active_timer"),
                                 suggestion=state.get("suggestion"), account=state.get("user"),
-                                lists_elsewhere=elsewhere)
+                                lists_elsewhere=elsewhere, cooking=state.get("cooking"),
+                                credits=state.get("credits"))
         self._schedule_timer(data.active_timer)
+        self._schedule_cooking_end(data.cooking)
         return data
 
     async def async_refresh_list(self, list_id: str) -> None:
@@ -120,6 +126,53 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
 
         self._timer_unsub = async_track_point_in_utc_time(self.hass, _finish, ends)
 
+    # --- Kochmodus: "Kocht gerade" endet mit cooking_finished oder nach COOKING_IDLE_MINUTES ohne
+    # neues Ereignis (Tab einfach geschlossen) - ebenfalls lokal ausgeloest --------------------------
+
+    @callback
+    def _schedule_cooking_end(self, cooking: dict[str, Any] | None) -> None:
+        if self._cooking_unsub:
+            self._cooking_unsub()
+            self._cooking_unsub = None
+        ends = parse_utc((cooking or {}).get("expires_at"))
+        if not cooking or not ends:
+            return
+
+        @callback
+        def _end(_now: datetime) -> None:
+            self._cooking_unsub = None
+            if self.data and self.data.cooking:
+                self.data.cooking = None
+                self.async_set_updated_data(self.data)
+
+        self._cooking_unsub = async_track_point_in_utc_time(self.hass, _end, ends)
+
+    @callback
+    def _cooking_activity(self, etype: str, data: dict[str, Any]) -> None:
+        if not self.data:
+            return
+        if etype == "cooking_finished":
+            self.data.cooking = None
+            self._schedule_cooking_end(None)
+            return
+        cooking = self.data.cooking
+        if etype == "cooking_started" or (etype == "cooking_step" and not cooking):
+            cooking = {"recipe": data.get("recipe"), "recipe_url": data.get("recipe_url"),
+                       "started_at": dt_util.utcnow().isoformat(), "total": data.get("total"),
+                       "step": None, "step_text": None}
+        if not cooking:
+            return  # Timer/Ofen ohne Kochmodus
+        if etype == "cooking_step":
+            cooking.update(step=data.get("step"), total=data.get("total") or cooking.get("total"),
+                           step_text=data.get("text"))
+        ends = dt_util.utcnow()
+        timer_end = parse_utc((self.data.active_timer or {}).get("ends_at"))
+        if timer_end and timer_end > ends:
+            ends = timer_end
+        cooking["expires_at"] = (ends + timedelta(minutes=COOKING_IDLE_MINUTES)).isoformat()
+        self.data.cooking = cooking
+        self._schedule_cooking_end(cooking)
+
     @callback
     def _fire(self, event_type: str, data: dict[str, Any]) -> None:
         payload = {k: v for k, v in data.items() if k != "type"}
@@ -137,13 +190,17 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
         if etype == "timer_started":
             if self.data:
                 self.data.active_timer = data
-                self.async_set_updated_data(self.data)
             self._schedule_timer(data)
         elif etype == "timer_cancelled":
             self._schedule_timer(None)
             if self.data:
                 self.data.active_timer = None
-                self.async_set_updated_data(self.data)
+        elif etype == "credits_changed":
+            if self.data and self.data.credits is not None and isinstance(data.get("credits"), (int, float)):
+                self.data.credits = data["credits"]
+        self._cooking_activity(etype, data)
+        if self.data:
+            self.async_set_updated_data(self.data)
         self._fire(etype, data)
 
     async def async_listen(self) -> None:
@@ -176,3 +233,7 @@ class RezeptKammerCoordinator(DataUpdateCoordinator[RezeptKammerData]):
         if self._timer_unsub:
             self._timer_unsub()
             self._timer_unsub = None
+
+    @callback
+    def async_shutdown_cooking(self) -> None:
+        self._schedule_cooking_end(None)

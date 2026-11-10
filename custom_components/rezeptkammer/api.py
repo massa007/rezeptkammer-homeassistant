@@ -83,6 +83,10 @@ class RezeptKammerApi:
     async def revoke(self) -> None:
         await self._request("DELETE", "/token")
 
+    async def suggestion_to_list(self) -> dict:
+        """Zutaten des Rezeptvorschlags auf die Einkaufsliste; {added, list_id}."""
+        return (await self._request("POST", "/suggestion/shopping"))[1]
+
     # Einkaufslisten
     async def list_items(self, list_id: str) -> list[dict]:
         return (await self._request("GET", f"/lists/{list_id}/items"))[1]["items"]

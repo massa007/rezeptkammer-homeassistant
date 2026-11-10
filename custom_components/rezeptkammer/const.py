@@ -19,5 +19,10 @@ EVENT_TYPES = [
     "cooking_finished",
 ]
 
+# Kochmodus gilt als beendet, wenn so lange nichts mehr kam (wie auf dem Server)
+COOKING_IDLE_MINUTES = 90
+# Ab weniger Prisen meldet der Binaersensor "Prisen knapp"
+LOW_CREDITS = 5
+
 FULL_REFRESH_MINUTES = 10
 EVENT_WAIT_SECONDS = 20

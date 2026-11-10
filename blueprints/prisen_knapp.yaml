@@ -1,0 +1,42 @@
+blueprint:
+  name: RezeptKammer – Prisen werden knapp
+  description: >-
+    Schickt eine Benachrichtigung, sobald dein RezeptKammer-Guthaben unter eine
+    Grenze fällt – einmal beim Unterschreiten, nicht bei jedem weiteren Import.
+  domain: automation
+  source_url: https://rezeptkammer.de/ha/blueprints/prisen_knapp.yaml
+  input:
+    credits_sensor:
+      name: Prisen-Sensor
+      selector:
+        entity:
+          filter:
+            integration: rezeptkammer
+            domain: sensor
+    threshold:
+      name: Grenze
+      description: Benachrichtigen, sobald weniger Prisen übrig sind.
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 100
+    notify_action:
+      name: Benachrichtigung
+      description: "Benachrichtigungs-Aktion, z. B. notify.mobile_app_mein_handy"
+      selector:
+        text:
+mode: single
+triggers:
+  - trigger: numeric_state
+    entity_id: !input credits_sensor
+    below: !input threshold
+variables:
+  notify_action: !input notify_action
+actions:
+  - action: "{{ notify_action }}"
+    data:
+      title: RezeptKammer
+      message: >-
+        Nur noch {{ states(trigger.entity_id) | float(0) | round(1) | string | replace('.0', '') }} Prisen übrig.
+        Aufladen unter {{ state_attr(trigger.entity_id, 'url') or 'rezeptkammer.de/guthaben' }}

@@ -67,6 +67,18 @@
       },
       "suggestion": {
         "name": "Recipe suggestion"
+      },
+      "cooking_recipe": {
+        "name": "Cooking recipe"
+      },
+      "cooking_step": {
+        "name": "Cooking step"
+      },
+      "cooking_progress": {
+        "name": "Cooking progress"
+      },
+      "credits": {
+        "name": "Pinches"
       }
     },
     "image": {
@@ -91,6 +103,24 @@
           }
         }
       }
+    },
+    "binary_sensor": {
+      "cooking_active": {
+        "name": "Cooking"
+      },
+      "credits_low": {
+        "name": "Pinches running low"
+      }
+    },
+    "button": {
+      "suggestion_to_list": {
+        "name": "Suggestion to shopping list"
+      }
+    }
+  },
+  "exceptions": {
+    "suggestion_to_list_failed": {
+      "message": "The recipe suggestion could not be added to the shopping list."
     }
   }
 }

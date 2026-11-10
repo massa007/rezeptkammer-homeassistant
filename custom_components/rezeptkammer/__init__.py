@@ -1,4 +1,4 @@
-"""RezeptKammer fuer Home Assistant: Einkaufslisten, Kochmodus-Ereignisse, Rezeptvorschlag."""
+"""RezeptKammer fuer Home Assistant: Einkaufslisten, Kochmodus, Rezeptvorschlag, Prisen."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -11,7 +11,7 @@ from .api import RezeptKammerApi, RezeptKammerError
 from .const import CONF_TOKEN, CONF_URL, DOMAIN
 from .coordinator import RezeptKammerCoordinator
 
-PLATFORMS = [Platform.EVENT, Platform.IMAGE, Platform.SENSOR, Platform.TODO]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.EVENT, Platform.IMAGE, Platform.SENSOR, Platform.TODO]
 
 type RezeptKammerConfigEntry = ConfigEntry[RezeptKammerCoordinator]
 
@@ -25,6 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: RezeptKammerConfigEntry)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_create_background_task(hass, coordinator.async_listen(), f"{DOMAIN}_events")
     entry.async_on_unload(coordinator.async_shutdown_timer)
+    entry.async_on_unload(coordinator.async_shutdown_cooking)
     return True
 
 
